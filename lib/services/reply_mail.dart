@@ -30,10 +30,15 @@ class EmailReply {
         MailAddress(username, '$username@iitk.ac.in'),
         quoteOriginalText: true,
       );
-
+        
       // Add reply body
-      builder.text = replyBody;
-
+      final replyHeader = MessageBuilder.fillTemplate(MailConventions.defaultReplyHeaderTemplate, originalMimeMessage);
+      final quotedHtml =
+            '<p>$replyBody</p><blockquote><br/>$replyHeader<br/>${originalMimeMessage.decodeTextHtmlPart()}</blockquote>';
+      final quotedPlainText = MessageBuilder.quotePlainText(replyHeader, originalMimeMessage.decodeTextPlainPart());
+      final textBody = replyBody+"\n\n"+ quotedPlainText ;
+      builder.addTextPlain(textBody);
+      builder.addTextHtml(quotedHtml);
       final mimeMessage = builder.buildMimeMessage();
       final sendResponse = await client.sendMessage(mimeMessage);
 
